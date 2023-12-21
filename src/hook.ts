@@ -1,10 +1,30 @@
-import React from "react";
 import createStore, {
   StoreAPI,
   StateComparer,
   StoreOptions,
   AnyState,
 } from "./store";
+
+// For the real definition of React, see @types/react
+let React:
+  | {
+      /**
+       * @param subscribe
+       * @param getSnapshot
+       *
+       * @see https://github.com/reactwg/react-18/discussions/86
+       */
+      // keep in sync with `useSyncExternalStore` from `use-sync-external-store`
+      useSyncExternalStore<Snapshot>(
+        subscribe: (onStoreChange: () => void) => () => void,
+        getSnapshot: () => Snapshot,
+        getServerSnapshot?: () => Snapshot
+      ): Snapshot;
+    }
+  | undefined = undefined;
+try {
+  React = await import("react");
+} catch {}
 
 /** A function that returns a value from a state. */
 export type StateSelector<T, U = T> = (state: T) => U;
@@ -41,20 +61,25 @@ function bindHook<T extends AnyState>(
   store: StoreAPI<T>
 ): StateSelectorHook<T> {
   const useSelector = (
-    selector: StateSelector<any> = (state) => state,
-    equals: StateComparer<any> = Object.is
+    selector: StateSelector<T> = (state) => state,
+    equals: StateComparer<T> = Object.is
   ) => {
-    const oldRef = React.useRef<any>();
+    const oldRef: { current: T | undefined } = { current: undefined };
     const select = () => {
       const oldValue = oldRef.current;
       const newValue = selector(store.get());
 
-      if (equals(oldValue, newValue)) {
+      if (oldValue && equals(oldValue, newValue)) {
         return oldValue;
-      } else {
-        return (oldRef.current = newValue);
       }
+
+      return (oldRef.current = newValue);
     };
+
+    if (!React) {
+      console.warn("React not available");
+      return select();
+    }
 
     return React.useSyncExternalStore(store.subscribe, select, select);
   };

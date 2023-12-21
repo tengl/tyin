@@ -1,29 +1,32 @@
 import { it, describe, expect, jest } from "bun:test";
-import createStore from "./store";
+import storeHook from "./hook";
 
-describe("store API", () => {
+/** The Hooks API basically tests the same thing as the store,
+ *  but instead of `.get` it calls the hook.
+ **/
+describe("Store hook API", () => {
   it("has undefined state", () => {
-    const store = createStore<string | undefined>(undefined);
+    const store = storeHook<string | undefined>(undefined);
 
-    expect(store.get()).toBeUndefined();
+    expect(store()).toBeUndefined();
   });
 
   it("has the initial state", () => {
-    const store = createStore("initial state");
+    const store = storeHook("initial state");
 
-    expect(store.get()).toEqual("initial state");
+    expect(store()).toEqual("initial state");
   });
 
   it("updates the state", () => {
-    const store = createStore<string>("initial state");
+    const store = storeHook<string>("initial state");
 
     store.set("updated state");
 
-    expect(store.get()).toEqual("updated state");
+    expect(store()).toEqual("updated state");
   });
 
   it("notifies subscribers of state changes", () => {
-    const store = createStore<string>("initial state");
+    const store = storeHook<string>("initial state");
 
     const subscriber = jest.fn();
 
@@ -35,7 +38,7 @@ describe("store API", () => {
   });
 
   it("unsubscribes subscribers", () => {
-    const store = createStore<string>("initial state");
+    const store = storeHook<string>("initial state");
 
     const subscriber = jest.fn().mockReset();
 
