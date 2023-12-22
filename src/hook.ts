@@ -77,7 +77,7 @@ function bindHook<T extends AnyState>(
     };
 
     if (!React) {
-      console.warn("React not available");
+      console.debug("React not available");
       return select();
     }
 
