@@ -24,7 +24,9 @@ let React:
   | undefined = undefined;
 try {
   React = await import("react");
-} catch {}
+} catch {
+  console.debug("React not available");
+}
 
 /** A function that returns a value from a state. */
 export type StateSelector<T, U = T> = (state: T) => U;
@@ -77,7 +79,6 @@ function bindHook<T extends AnyState>(
     };
 
     if (!React) {
-      console.debug("React not available");
       return select();
     }
 
